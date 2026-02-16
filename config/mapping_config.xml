@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DataIntegrationConfig>
+    <SourceSystem name="ProductionLine" type="CSV">
+        <FilePath>data/raw/production_data_*.csv</FilePath>
+        <Delimiter>,</Delimiter>
+        <HasHeader>true</HasHeader>
+    </SourceSystem>
+    
+    <TargetSystem name="QualityDatabase" type="SQLServer">
+        <ConnectionString>Driver={ODBC Driver 17 for SQL Server};Server=localhost;Database=ManufacturingDB;Trusted_Connection=yes;</ConnectionString>
+        <TargetTable>Production.QualityData</TargetTable>
+    </TargetSystem>
+    
+    <FieldMappings>
+        <Field source="timestamp" target="RecordTimestamp" dataType="datetime" required="true">
+            <Validation rule="not_null" />
+            <Validation rule="date_range" min="2020-01-01" max="2099-12-31" />
+        </Field>
+        
+        <Field source="line_id" target="ProductionLineID" dataType="varchar(10)" required="true">
+            <Validation rule="not_null" />
+            <Validation rule="regex" pattern="^LINE[0-9]{3}$" description="Format: LINE001" />
+        </Field>
+        
+        <Field source="batch_number" target="BatchNumber" dataType="varchar(20)" required="true">
+            <Validation rule="not_null" />
+            <Validation rule="unique" scope="daily" />
+        </Field>
+        
+        <Field source="product_code" target="ProductCode" dataType="varchar(15)" required="true">
+            <Validation rule="not_null" />
+            <Validation rule="lookup" table="Production.Products" column="ProductCode" />
+        </Field>
+        
+        <Field source="temperature_c" target="TemperatureCelsius" dataType="decimal(5,2)" required="true">
+            <Validation rule="not_null" />
+            <Validation rule="range" min="-10.0" max="200.0" />
+            <Validation rule="outlier_detection" method="zscore" threshold="3.0" />
+        </Field>
+        
+        <Field source="pressure_kpa" target="PressureKPA" dataType="decimal(6,2)" required="true">
+            <Validation rule="not_null" />
+            <Validation rule="range" min="0.0" max="1000.0" />
+        </Field>
+        
+        <Field source="humidity_pct" target="HumidityPercent" dataType="decimal(5,2)" required="false">
+            <Validation rule="range" min="0.0" max="100.0" />
+        </Field>
+        
+        <Field source="operator_id" target="OperatorID" dataType="varchar(10)" required="true">
+            <Validation rule="not_null" />
+            <Validation rule="regex" pattern="^OP[0-9]{4}$" description="Format: OP0001" />
+        </Field>
+        
+        <Field source="defect_count" target="DefectCount" dataType="int" required="true">
+            <Validation rule="not_null" />
+            <Validation rule="range" min="0" max="9999" />
+        </Field>
+    </FieldMappings>
+    
+    <GlobalValidations>
+        <Validation rule="duplicate_check" fields="timestamp,line_id,batch_number" />
+        <Validation rule="referential_integrity" foreignTable="Production.Operators" foreignKey="operator_id" />
+    </GlobalValidations>
+    
+    <ETLConfig>
+        <BatchSize>1000</BatchSize>
+        <ErrorHandling>continue</ErrorHandling>
+        <LogLevel>detailed</LogLevel>
+        <ArchiveProcessedFiles>true</ArchiveProcessedFiles>
+    </ETLConfig>
+</DataIntegrationConfig>
