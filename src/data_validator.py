@@ -20,7 +20,8 @@ from typing import List, Dict, Tuple, Optional, Any
 from dataclasses import dataclass
 
 # Import from same folder (src)
-from xml_parser import ConfigParser, FieldMapping, ValidationRule
+# from xml_parser import ConfigParser, FieldMapping, ValidationRule
+from src.xml_parser import ConfigParser, FieldMapping, ValidationRule
 
 
 @dataclass

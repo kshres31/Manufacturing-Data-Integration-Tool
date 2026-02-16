@@ -16,7 +16,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
 sys.path.insert(0, project_root)
 
-from xml_parser import ConfigParser
+from src.xml_parser import ConfigParser
 from data_validator import DataValidator, ValidationError
 
 
